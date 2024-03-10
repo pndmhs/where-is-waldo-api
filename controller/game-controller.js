@@ -5,14 +5,10 @@ const Game = require("../models/game");
 require("dotenv").config();
 
 exports.game_start = asyncHandler(async (req, res, next) => {
-  const token = jwt.sign({ date: Date.now() }, process.env.TOKEN_SECRET);
-  res.json({ token });
-});
-
-exports.game_get = asyncHandler(async (req, res, next) => {
   const game = await Game.findOne({ name: req.params.name });
   if (!game) return res.sendStatus(400);
-  return res.json(game);
+  const token = jwt.sign({ start_time: Date.now() }, process.env.TOKEN_SECRET);
+  return res.json({ game_id: game._id, token });
 });
 
 exports.game_post = [
