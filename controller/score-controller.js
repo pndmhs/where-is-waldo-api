@@ -5,7 +5,13 @@ const Score = require("../models/score");
 require("dotenv").config();
 
 exports.score_get = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: Score data GET");
+  try {
+    const allScore = await Score.find().exec();
+    res.json(allScore);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 exports.score_post = [
