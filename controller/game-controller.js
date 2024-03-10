@@ -40,3 +40,46 @@ exports.game_post = [
     }
   }),
 ];
+
+exports.check_coordinate = [
+  body("targets.*.character", "Character name must not be empty")
+    .trim()
+    .isLength({ min: 3 })
+    .escape(),
+  body("targets.*.min_x", "Coordinate must be a number").trim().isNumeric(),
+  body("targets.*.min_y", "Coordinate must be a number").trim().isNumeric(),
+  body("targets.*.max_x", "Coordinate must be a number").trim().isNumeric(),
+  body("targets.*.max_y", "Coordinate must be a number").trim().isNumeric(),
+
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty) {
+      return res.sendStatus(400);
+    }
+
+    const game = await Game.findOne({ name: req.params.name }).exec();
+    const selectedTarget = req.body.targets;
+
+    const correctTargets = game.targets.filter((target1) => {
+      return selectedTarget.some((target2) => {
+        const condition1 =
+          target2.x >= target1.min_x && target2.x <= target1.max_x;
+        const condition2 =
+          target2.y >= target1.min_y && target2.y <= target1.max_y;
+        const condition3 = target2.character === target1.character;
+        return condition1 && condition2 && condition3;
+      });
+    });
+
+    if (selectedTarget.length !== correctTargets.length) {
+      return res.sendStatus(400);
+    }
+
+    if (correctTargets.length === game.targets.length) {
+      return res.json({ finished: true });
+    }
+
+    return res.json({ finished: false });
+  }),
+];
