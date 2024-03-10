@@ -10,7 +10,9 @@ exports.game_start = asyncHandler(async (req, res, next) => {
 });
 
 exports.game_get = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: Target data GET");
+  const game = await Game.findOne({ name: req.params.name });
+  if (!game) return res.sendStatus(400);
+  return res.json(game);
 });
 
 exports.game_post = [
