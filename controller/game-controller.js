@@ -2,12 +2,16 @@ const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 const Game = require("../models/game");
+const { DateTime } = require("luxon");
 require("dotenv").config();
 
 exports.game_start = asyncHandler(async (req, res, next) => {
   const game = await Game.findOne({ name: req.params.name }).exec();
   if (!game) return res.sendStatus(400);
-  const token = jwt.sign({ start_time: Date.now() }, process.env.TOKEN_SECRET);
+  const token = jwt.sign(
+    { start_time: DateTime.now() },
+    process.env.TOKEN_SECRET
+  );
   const targetCharacter = game.targets.map((target) => target.character);
   return res.json({ game_id: game._id, targets: targetCharacter, token });
 });
@@ -55,6 +59,7 @@ exports.check_coordinate = [
     .trim()
     .notEmpty()
     .isNumeric(),
+  body("token", "Token must not be empty").trim().notEmpty(),
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
@@ -82,9 +87,14 @@ exports.check_coordinate = [
     }
 
     if (correctTargets.length === game.targets.length) {
+      const decoded = jwt.verify(req.body.token, process.env.TOKEN_SECRET);
+      const start_time = DateTime.fromISO(decoded.start_time);
+      const end_time = DateTime.now();
+      const diffTime = end_time.diff(start_time, "seconds");
       return res.json({
         correct_targets: correctTargets.length,
         finished: true,
+        time_score: diffTime.toObject(),
       });
     }
 
