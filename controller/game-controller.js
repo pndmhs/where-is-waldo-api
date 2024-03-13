@@ -82,9 +82,15 @@ exports.check_coordinate = [
     }
 
     if (correctTargets.length === game.targets.length) {
-      return res.json({ finished: true });
+      return res.json({
+        correct_targets: correctTargets.length,
+        finished: true,
+      });
     }
 
-    return res.json({ finished: false });
+    return res.json({
+      correct_targets: correctTargets.length,
+      finished: false,
+    });
   }),
 ];
