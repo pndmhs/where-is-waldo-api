@@ -47,16 +47,20 @@ exports.check_coordinate = [
     .trim()
     .isLength({ min: 3 })
     .escape(),
-  body("targets.*.min_x", "Coordinate must be a number").trim().isNumeric(),
-  body("targets.*.min_y", "Coordinate must be a number").trim().isNumeric(),
-  body("targets.*.max_x", "Coordinate must be a number").trim().isNumeric(),
-  body("targets.*.max_y", "Coordinate must be a number").trim().isNumeric(),
+  body("targets.*.x", "Coordinate must be a number")
+    .trim()
+    .notEmpty()
+    .isNumeric(),
+  body("targets.*.y", "Coordinate must be a number")
+    .trim()
+    .notEmpty()
+    .isNumeric(),
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
 
-    if (!errors.isEmpty) {
-      return res.sendStatus(400);
+    if (!errors.isEmpty()) {
+      return res.status(400).json(errors);
     }
 
     const game = await Game.findOne({ name: req.params.name }).exec();
@@ -74,7 +78,7 @@ exports.check_coordinate = [
     });
 
     if (selectedTarget.length !== correctTargets.length) {
-      return res.sendStatus(400);
+      return res.status(400).json({ message: "The coordinate is not correct" });
     }
 
     if (correctTargets.length === game.targets.length) {
