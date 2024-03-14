@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const ScoreSchema = new Schema({
   username: { type: String, require: true, minLength: 3 },
-  score: { type: String, require: true },
+  score: { type: Number, require: true },
   date: { type: Date, require: true },
   game: { type: Schema.ObjectId, ref: "Game" },
 });
