@@ -7,7 +7,12 @@ require("dotenv").config();
 
 exports.score_get = asyncHandler(async (req, res, next) => {
   try {
-    const allScore = await Score.find().exec();
+    const game = await Game.findOne({ name: req.params.game_name }).exec();
+    if (!game) {
+      return res.send(400).json({ message: "Can't find the game" });
+    }
+
+    const allScore = await Score.find({ game: game._id }).exec();
     res.json(allScore);
   } catch (err) {
     console.log(err);
