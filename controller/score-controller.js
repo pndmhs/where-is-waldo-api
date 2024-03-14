@@ -1,7 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const jwt = require("jsonwebtoken");
 const Score = require("../models/score");
+const Game = require("../models/game");
+const { DateTime } = require("luxon");
 require("dotenv").config();
 
 exports.score_get = asyncHandler(async (req, res, next) => {
@@ -15,26 +16,32 @@ exports.score_get = asyncHandler(async (req, res, next) => {
 });
 
 exports.score_post = [
-  body("name", "Name must not be empty").trim().isLength({ min: 3 }).escape(),
-  body("token", "Token must not be empty").trim().notEmpty().escape(),
-  body("game_id", "game_id must not be empty").trim().notEmpty().escape(),
+  body("username", "Username must not be empty")
+    .trim()
+    .isLength({ min: 3 })
+    .escape(),
+  body("score", "Score must not be empty").trim().notEmpty().escape(),
+  body("game_name", "Game name must not be empty").trim().notEmpty().escape(),
 
   asyncHandler(async (req, res, next) => {
     try {
       const errors = validationResult(req);
 
       if (!errors.isEmpty()) {
-        return res.sendStatus(400);
+        return res.status(400).json(errors);
       }
 
-      const decoded = jwt.verify(req.body.token, process.env.TOKEN_SECRET);
-      const start_time = decoded.start_time;
+      const game = await Game.findOne({ name: req.body.game_name }).exec();
+
+      if (!game) {
+        return res.status(400).json({ message: "Can't find the game" });
+      }
 
       const score = new Score({
-        name: req.body.name,
-        start_time,
-        end_time: req.body.end_time || Date.now(),
-        game: req.body.game_id,
+        username: req.body.username,
+        score: req.body.score,
+        date: Date.now(),
+        game: game._id,
       });
 
       await score.save();
