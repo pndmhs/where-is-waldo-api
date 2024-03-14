@@ -12,7 +12,7 @@ exports.score_get = asyncHandler(async (req, res, next) => {
       return res.send(400).json({ message: "Can't find the game" });
     }
 
-    const allScore = await Score.find({ game: game._id }).exec();
+    const allScore = await Score.find({ game: game._id }).sort("score").exec();
     res.json(allScore);
   } catch (err) {
     console.log(err);
