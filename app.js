@@ -1,6 +1,7 @@
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
+const helmet = require("helmet");
 
 require("dotenv").config();
 
@@ -23,7 +24,15 @@ async function main() {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(logger("dev"));
+app.use(helmet());
 app.use(cors());
+
+app.get("/", (req, res) => {
+  res.json({
+    name: `Where's Waldo API`,
+    endpoints: ["/game", "/scores"],
+  });
+});
 
 app.use("/game", gameRouter);
 app.use("/scores", scoreRouter);
